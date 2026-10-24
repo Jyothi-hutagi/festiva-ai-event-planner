@@ -1,0 +1,29 @@
+# Festiva: GenAI Celebration & Event Planner
+
+## Stack
+Next.js (App Router) + TypeScript (strict) + Tailwind + shadcn/ui + Zod + Vitest + Playwright.
+AI: Gemini via @google/genai, called ONLY from server routes in app/api/*.
+
+## Structure
+- app/            routes and pages
+- app/api/        server routes (plan, refine)
+- components/     small, single-purpose UI components
+- lib/            schema.ts (Zod), gemini.ts, budget.ts, rate-limit.ts
+- tests/          unit tests (Vitest) and e2e (Playwright)
+- PROMPTS.md      log of key prompts and how they evolved (update when prompts change)
+
+## Standards
+- TypeScript strict mode, no `any`, no dead code, no unused exports.
+- Components under ~150 lines; extract hooks/helpers when larger.
+- Every AI response is validated with Zod before it reaches the UI.
+- Never expose GEMINI_API_KEY to the client. No NEXT_PUBLIC_ for secrets.
+- Validate all request bodies with Zod. Add rate limiting to every API route.
+- Never use dangerouslySetInnerHTML. Treat AI output as untrusted text.
+- Accessibility: labelled inputs, visible focus, keyboard navigation, WCAG AA contrast,
+  aria-live for the chat and loading states.
+- Always show loading, error, and empty states.
+- Add or update tests with every feature (budget math, schema parsing, one e2e flow).
+- Run `npm run lint && npm run test` before finishing a task.
+
+## Workflow
+Plan first, then implement one small step at a time. Explain what changed after each step.

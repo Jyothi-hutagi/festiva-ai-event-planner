@@ -1,0 +1,11 @@
+{
+  "venues": [
+    {
+      "name": "Garden Hall",
+      "whyItFits": "Seats 40 for a wedding.",
+      "priceRange": "₹40,000–₹80,000",
+      "address": "Koregaon Park, Pune",
+      "url": "https://hall.example/book"
+    }
+  ]
+}

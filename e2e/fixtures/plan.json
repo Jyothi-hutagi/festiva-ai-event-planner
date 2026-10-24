@@ -1,0 +1,44 @@
+{
+  "summary": "A Pune wedding for 40 guests.",
+  "budget": {
+    "total": 80000,
+    "categories": [
+      {
+        "name": "Venue",
+        "amount": 40000,
+        "percent": 50,
+        "notes": "Garden hall"
+      },
+      { "name": "Food", "amount": 24000, "percent": 30, "notes": "Meals" },
+      { "name": "Decor", "amount": 16000, "percent": 20, "notes": "Flowers" }
+    ]
+  },
+  "timeline": [
+    { "phase": "Planning", "tasks": ["Book the venue"] },
+    { "phase": "Week before", "tasks": ["Confirm the menu"] },
+    { "phase": "Event day", "tasks": ["Welcome guests"] }
+  ],
+  "vendors": [
+    {
+      "type": "Caterer",
+      "checklist": ["Schedule a tasting", "Rain contingency plan"],
+      "questionsToAsk": ["Do you cook vegetarian food?"]
+    },
+    {
+      "type": "Photographer",
+      "checklist": ["Book a date"],
+      "questionsToAsk": ["How many hours are included?"]
+    },
+    {
+      "type": "Decorator",
+      "checklist": ["Choose a palette"],
+      "questionsToAsk": ["Which flowers are in season?"]
+    }
+  ],
+  "ideas": {
+    "themes": ["Garden evening"],
+    "menu": ["Thali"],
+    "activities": ["Lawn games"],
+    "decor": ["Marigolds"]
+  }
+}
