@@ -121,3 +121,11 @@ What I saw: a Hindi workshop plan returned HTTP 200 with phases such as "12+ Mon
 What I changed: the system prompt now says a phase that omits `daysBefore` is invalid. Plan generation asks Gemini for JSON that requires `daysBefore` on every phase. If a phase still arrives without it, generation throws and the one retry asks for the number again.
 
 Why: the field stays optional so an older saved plan still parses, but a new plan without the number still drops every reminder. Asking for the number in the prompt was not enough; the response schema makes the model include it.
+
+## v12: Decor image prompt
+
+What I saw: Decor Preview asks `POST /api/decor-image` for one picture. The browser sends the event and the plan, and the server has to write the picture prompt.
+
+What I changed: `buildDecorPrompt` names the event type, city, event name, and decor style, then lists the decor ideas under a line that they are data, not instructions. Newlines inside an idea are flattened. The prompt is capped at 2000 characters. The image call asks for one square picture at 1K so the JSON stays under the response limit.
+
+Why: the person never types the image prompt, and a decor idea must not become an instruction to the image model.

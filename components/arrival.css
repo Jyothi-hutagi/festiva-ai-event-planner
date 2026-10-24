@@ -1,0 +1,49 @@
+.invite-unfold {
+  transform-origin: top center;
+  animation: invite-unfold 400ms ease both;
+}
+
+@keyframes invite-unfold {
+  from {
+    opacity: 0;
+    transform: scaleY(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.petal-field {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.petal {
+  position: absolute;
+  top: 8px;
+  width: 12px;
+  height: 16px;
+  border-radius: 12px 0;
+  animation: petal-fall 1100ms ease-in both;
+}
+
+@keyframes petal-fall {
+  from {
+    opacity: 1;
+    transform: translateY(0) rotate(var(--petal-turn, 0deg));
+  }
+  to {
+    opacity: 0;
+    transform: translateY(120px) rotate(var(--petal-turn, 0deg));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .invite-unfold,
+  .petal {
+    animation: none;
+  }
+}

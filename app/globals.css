@@ -21,6 +21,7 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+  --color-chart-6: var(--chart-6);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -78,8 +79,13 @@
   --chart-3: #ffb627;
   --chart-4: #2a1b3d;
   --chart-5: #7d6894;
+  --chart-6: #9e1d4e;
+  --chart-outline: #2a1b3d;
   --radius: 4px;
   --sheet-edge: #7d6894;
+  --paper: var(--card);
+  --ink: var(--foreground);
+  --ink-soft: var(--muted-foreground);
   --sidebar: #fbf7ff;
   --sidebar-foreground: #2a1b3d;
   --sidebar-primary: #d6336c;
@@ -116,6 +122,8 @@
   --chart-3: #ffb627;
   --chart-4: #e7d8f5;
   --chart-5: #a894bc;
+  --chart-6: #ffb3c9;
+  --chart-outline: #fbf7ff;
   --sidebar: #1a1024;
   --sidebar-foreground: #fbf7ff;
   --sidebar-primary: #d6336c;
@@ -126,20 +134,12 @@
   --sidebar-ring: #fbf7ff;
   --shadow-sheet: none;
   --sheet-edge: #a894bc;
+  --paper: var(--card);
+  --ink: var(--foreground);
+  --ink-soft: var(--muted-foreground);
 }
 
 @layer base {
-  @keyframes toran-drop {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
   * {
     @apply border-border;
   }
@@ -180,12 +180,18 @@
   ::placeholder {
     color: var(--muted-foreground);
   }
-  :focus-visible {
+  :focus-visible,
+  button:focus,
+  a:focus,
+  input:focus,
+  select:focus,
+  textarea:focus,
+  summary:focus {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
-  :is(h1, h2, h3, h4, h5, h6)[tabindex="-1"]:focus,
-  :is(h1, h2, h3, h4, h5, h6)[tabindex="-1"]:focus-visible {
+  [tabindex="-1"]:focus,
+  [tabindex="-1"]:focus-visible {
     outline: none;
   }
   button {
@@ -197,20 +203,6 @@
     border: 1px solid var(--sheet-edge);
     box-shadow: var(--shadow-sheet);
   }
-  .toran-flag {
-    transform-box: fill-box;
-    transform-origin: top center;
-    animation: toran-drop 0.6s ease both;
-  }
-  .invite-fade {
-    opacity: 1;
-    transition: opacity 150ms ease;
-  }
-  @starting-style {
-    .invite-fade {
-      opacity: 0;
-    }
-  }
 
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -221,13 +213,6 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
-    .toran-flag,
-    .invite-fade {
-      animation: none !important;
-      opacity: 1 !important;
-      transform: none !important;
-      transition: none !important;
-    }
   }
 
   @media print {
@@ -237,17 +222,23 @@
   }
 }
 
+/* Print is white paper with plum ink. */
 @media print {
   html,
-  body {
-    @apply bg-white text-black;
+  body,
+  body * {
+    color: #2a1b3d !important;
+    background: #fff !important;
+    box-shadow: none !important;
   }
 
-  .print-sheet,
-  .print-sheet * {
-    color: #000 !important;
-    background: transparent !important;
-    box-shadow: none !important;
+  .petal-field,
+  .petal {
+    display: none !important;
+  }
+
+  [data-print-section] {
+    display: block !important;
   }
 
   .print-card {

@@ -1,6 +1,33 @@
 import type { Plan } from "@/lib/schema";
 import { tickKey, type TickMap } from "@/lib/ticks";
 
+function Ring({ done, total }: { done: number; total: number }) {
+  const progress = total === 0 ? 0 : (done / total) * 100;
+  return (
+    <svg viewBox="0 0 36 36" className="size-11 shrink-0" aria-hidden="true">
+      <circle
+        cx="18"
+        cy="18"
+        r="14"
+        fill="none"
+        stroke="var(--border)"
+        strokeWidth="3"
+      />
+      <circle
+        cx="18"
+        cy="18"
+        r="14"
+        fill="none"
+        stroke="var(--chart-2)"
+        strokeWidth="3"
+        pathLength={100}
+        strokeDasharray={`${progress} ${100 - progress}`}
+        transform="rotate(-90 18 18)"
+      />
+    </svg>
+  );
+}
+
 export function VendorList({
   vendors,
   ticks,
@@ -11,47 +38,64 @@ export function VendorList({
   onToggle: (key: string) => void;
 }) {
   return (
-    <div className="grid gap-3">
-      {vendors.map((vendor, vendorIndex) => (
-        <article
-          key={`${vendor.type}-${vendorIndex}`}
-          className="print-card grid gap-3 rounded-lg border border-border p-3 print:break-inside-avoid"
-        >
-          <h4 className="font-medium">{vendor.type}</h4>
-          <ul className="grid gap-2">
-            {vendor.checklist.map((item, itemIndex) => {
-              const key = tickKey(vendor.type, item);
-              return (
-                <li key={`${key}-${itemIndex}`}>
-                  <label className="flex items-start gap-2 text-sm">
-                    <span
-                      className="mt-1 hidden print:inline"
-                      aria-hidden="true"
-                    >
-                      {ticks[key] ? "[x]" : "[ ]"}
-                    </span>
-                    <input
-                      type="checkbox"
-                      className="mt-1 print:hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                      checked={Boolean(ticks[key])}
-                      onChange={() => onToggle(key)}
-                    />
-                    <span>{item}</span>
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-          <div className="grid gap-1">
-            <h5 className="text-sm font-medium">Questions to ask</h5>
-            <ul className="list-disc pl-5 text-sm">
-              {vendor.questionsToAsk.map((question, questionIndex) => (
-                <li key={`${question}-${questionIndex}`}>{question}</li>
-              ))}
+    <div>
+      {vendors.map((vendor, vendorIndex) => {
+        const done = vendor.checklist.filter(
+          (item) => ticks[tickKey(vendor.type, item)],
+        ).length;
+        return (
+          <article
+            key={`${vendor.type}-${vendorIndex}`}
+            className="grid gap-3 border-t border-border py-4 print:break-inside-avoid"
+          >
+            <div className="flex items-center gap-3">
+              <Ring done={done} total={vendor.checklist.length} />
+              <div className="min-w-0">
+                <h3 className="font-heading text-2xl font-semibold break-words">
+                  {vendor.type}
+                </h3>
+                <p>
+                  {done} of {vendor.checklist.length} done
+                </p>
+              </div>
+            </div>
+            <ul className="grid gap-1">
+              {vendor.checklist.map((item, itemIndex) => {
+                const key = tickKey(vendor.type, item);
+                return (
+                  <li key={`${key}-${itemIndex}`}>
+                    <label className="flex min-h-11 items-center gap-3">
+                      <span className="hidden print:inline" aria-hidden="true">
+                        {ticks[key] ? "[x]" : "[ ]"}
+                      </span>
+                      <input
+                        type="checkbox"
+                        className="size-11 shrink-0 print:hidden"
+                        checked={Boolean(ticks[key])}
+                        onChange={() => onToggle(key)}
+                      />
+                      <span className="break-words">{item}</span>
+                    </label>
+                  </li>
+                );
+              })}
             </ul>
-          </div>
-        </article>
-      ))}
+            <div className="grid gap-1">
+              <h4 className="font-medium">Questions to ask</h4>
+              <ul className="grid gap-1">
+                {vendor.questionsToAsk.map((question, questionIndex) => (
+                  <li
+                    key={`${question}-${questionIndex}`}
+                    className="break-words"
+                  >
+                    {question}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </article>
+        );
+      })}
     </div>
   );
 }

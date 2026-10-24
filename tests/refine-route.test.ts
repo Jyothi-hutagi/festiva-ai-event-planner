@@ -65,6 +65,7 @@ function post(body: unknown, ip: string) {
 
 describe("POST /api/refine validation", () => {
   beforeEach(() => {
+    process.env.GEMINI_API_KEY = "test-key";
     refinePlanMock.mockReset();
     refinePlanMock.mockResolvedValue(updatedPlan);
   });

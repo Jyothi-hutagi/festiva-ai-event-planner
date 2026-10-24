@@ -76,11 +76,11 @@ export function EventFormView({
           </Button>
         ) : null}
         {step < 2 ? (
-          <Button type="button" disabled={disabled} onClick={onNext}>
+          <Button key="next" type="button" disabled={disabled} onClick={onNext}>
             Next
           </Button>
         ) : (
-          <Button type="submit" disabled={disabled}>
+          <Button key="create" type="submit" disabled={disabled}>
             {disabled ? "Creating your plan..." : "Create my plan"}
           </Button>
         )}

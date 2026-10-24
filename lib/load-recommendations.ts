@@ -7,8 +7,8 @@ import {
   type Plan,
 } from "@/lib/schema";
 
-export type ShopItem = z.infer<typeof ShopItemSchema>;
-export type Venue = z.infer<typeof VenueSchema>;
+type ShopItem = z.infer<typeof ShopItemSchema>;
+type Venue = z.infer<typeof VenueSchema>;
 
 type ListStatus = "loading" | "error" | "empty" | "ready";
 

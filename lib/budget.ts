@@ -1,9 +1,9 @@
-export type CategoryAmount = {
+type CategoryAmount = {
   name: string;
   amount: number;
 };
 
-export type CategoryShare = CategoryAmount & {
+type CategoryShare = CategoryAmount & {
   share: number;
 };
 

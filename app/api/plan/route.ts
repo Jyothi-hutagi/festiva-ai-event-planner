@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { geminiFailureResponse } from "@/lib/gemini-error";
+import { geminiUnavailableResponse } from "@/lib/gemini-key";
 import { EventInputSchema } from "@/lib/schema";
 import { generatePlan } from "@/lib/gemini";
 import { rateLimit } from "@/lib/rate-limit";
@@ -6,6 +8,10 @@ import { rateLimit } from "@/lib/rate-limit";
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
+  const unavailable = geminiUnavailableResponse();
+  if (unavailable) {
+    return unavailable;
+  }
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
   if (!rateLimit(ip)) {
@@ -27,10 +33,6 @@ export async function POST(req: Request) {
     const plan = await generatePlan(parsed.data);
     return NextResponse.json(plan);
   } catch (err) {
-    console.error("plan generation failed", err);
-    return NextResponse.json(
-      { error: "Could not generate a plan. Please try again." },
-      { status: 502 },
-    );
+    return geminiFailureResponse(err, "plan generation failed");
   }
 }

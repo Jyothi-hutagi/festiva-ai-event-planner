@@ -18,7 +18,7 @@ const vibeSchema = EventInputSchema.pick({
   language: true,
 });
 
-export type StepValues = {
+type StepValues = {
   eventType?: string;
   date?: string;
   eventName?: string;

@@ -1,4 +1,4 @@
-# Festiva: AI Celebration & Event Planner
+# Toran: AI Celebration & Event Planner
 
 GenAI planning assistant that helps organize weddings, birthdays and community events with
 budgets, timelines, vendor checklists and personalized ideas.
@@ -40,12 +40,19 @@ Chat -> `POST /api/refine` (current plan + instruction) -> validated updated pla
 - Unit tests (budget math, schema), one Playwright e2e flow
 - Accessibility: labels, keyboard navigation, aria-live regions
 
-## Run locally
+## Setup
+
+1. Install dependencies with `npm install`.
+2. Copy the example env file and add a key from [Google AI Studio](https://aistudio.google.com):
 
 ```bash
-npm install
-cp .env.example .env.local   # add your Gemini key
-npm run dev
+cp .env.example .env.local
 ```
+
+Set `GEMINI_API_KEY` in `.env.local`. The key stays on the server. Do not prefix it with `NEXT_PUBLIC_`.
+
+3. Start the app with `npm run dev`.
+
+If `GEMINI_API_KEY` is missing, every API route responds with HTTP 503 and `Server is missing GEMINI_API_KEY. See README.` The page shows that sentence in the error state.
 
 `npm run build` downloads Baloo 2 and Hind through `next/font`. That build needs internet access. The font files are fetched at build time and are not added to the project zip.

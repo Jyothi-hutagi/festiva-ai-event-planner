@@ -1,4 +1,4 @@
-# Festiva visual design
+# Toran visual design
 
 Revised plan for the redesign. No application code in this step. D1–D6 implement this file one step at a time.
 
@@ -33,7 +33,7 @@ Revisions, now the spec below:
 
 - Chrome (buttons, steps, tabs, errors) stays English. Hindi applies to the generated plan, which is why both fonts include Devanagari.
 - One page, one route. The intro, with the form and the live invitation, is replaced by the result. "Edit details" returns to the form with the values kept. Saved plans stay on the intro. The Save button is on the result, not the intro.
-- The dark theme starts in light. A blocking script in `<head>` sets `data-theme` on `<html>` before first paint. "Dark room" only toggles that attribute and writes `festiva-theme`.
+- The dark theme starts in light. A blocking script in `<head>` sets `data-theme` on `<html>` before first paint. "Dark room" only toggles that attribute and writes `toran-theme`.
 
 ## Theme before paint
 
@@ -42,7 +42,7 @@ Revisions, now the spec below:
 ```html
 <script>
   try {
-    var saved = localStorage.getItem("festiva-theme");
+    var saved = localStorage.getItem("toran-theme");
     document.documentElement.setAttribute(
       "data-theme",
       saved === "dark" ? "dark" : "light",
@@ -53,7 +53,7 @@ Revisions, now the spec below:
 </script>
 ```
 
-Dark tokens apply from `html[data-theme="dark"]`. There is no second class. "Dark room" sets the attribute to `dark` or `light` and writes `festiva-theme` inside `try/catch`. It does not read storage. A blocked `localStorage` leaves the attribute at `light` and the control still toggles the attribute for the current view.
+Dark tokens apply from `html[data-theme="dark"]`. There is no second class. "Dark room" sets the attribute to `dark` or `light` and writes `toran-theme` inside `try/catch`. It does not read storage. A blocked `localStorage` leaves the attribute at `light` and the control still toggles the attribute for the current view.
 
 ## Color
 
@@ -61,18 +61,18 @@ Measured with the WCAG relative-luminance formula. Body text needs 4.5:1. Large 
 
 ### Light (default)
 
-| Role           | Hex       | Used for                                    |
-| -------------- | --------- | ------------------------------------------- |
-| Lilac table    | `#FBF7FF` | Page background                             |
-| Paper          | `#FFFFFF` | Invitation sheet and budget panel           |
-| Plum ink       | `#2A1B3D` | Body, headings, focus ring                  |
-| Ink soft       | `#5C4D73` | Secondary text, hints, placeholders         |
-| Bougainvillea  | `#D6336C` | Primary button fill, selected-tab underline |
-| Deep pink      | `#9E1D4E` | Error text                                  |
+| Role           | Hex       | Used for                                               |
+| -------------- | --------- | ------------------------------------------------------ |
+| Lilac table    | `#FBF7FF` | Page background                                        |
+| Paper          | `#FFFFFF` | Invitation sheet and budget panel                      |
+| Plum ink       | `#2A1B3D` | Body, headings, focus ring                             |
+| Ink soft       | `#5C4D73` | Secondary text, hints, placeholders                    |
+| Bougainvillea  | `#D6336C` | Primary button fill, selected-tab underline            |
+| Deep pink      | `#9E1D4E` | Error text                                             |
 | Marigold       | `#FFB627` | Hairline, completed step segments, timeline dot, toran |
-| Peacock        | `#0B7A75` | Progress arc, success text                  |
-| Control border | `#9A86B0` | Input and button outlines                   |
-| Sheet edge     | `#7D6894` | The invitation's outer rule                 |
+| Peacock        | `#0B7A75` | Progress arc, success text                             |
+| Control border | `#9A86B0` | Input and button outlines                              |
+| Sheet edge     | `#7D6894` | The invitation's outer rule                            |
 
 Tints, not additional hues: paper white, pale fill `#F3E6FF` for a quiet block that contains no inputs, and the night colors in the dark theme. Form fields sit on paper white `#FFFFFF`. They are never placed on the pale fill `#F3E6FF`, and they are not placed on the lilac table. The control border `#9A86B0` on paper white is 3.28:1. No gradient.
 
@@ -167,7 +167,7 @@ Desktop, 1280px. A toran runs across the full width: nine small triangular flags
 ```
 v v v v v v v v v          (toran, full width)
 
-Festiva (wordmark)                              Dark room
+Toran (wordmark)                              Dark room
 
 Plan the celebration,
 not the spreadsheet.
@@ -200,7 +200,7 @@ Your saved plans
   and it will be kept on this device.
 ```
 
-The wordmark is "Festiva" in Baloo 2. It is not a heading. "Dark room" stays at the right of that row.
+The wordmark is "Toran" in Baloo 2. It is not a heading. "Dark room" stays at the right of that row.
 
 The page `h1` is the hero, "Plan the celebration, not the spreadsheet.", Baloo 2, 56px on desktop and 34px at 375px, at most 14ch per line. Under it, one Hind sentence at 17px: "Budget, timeline, vendors, decor ideas and where to buy, built for your date and city."
 
@@ -215,7 +215,7 @@ At 375px the order is one column: the hero, then the live invitation in a compac
 ```
 v v v v v v v v v
 
-Festiva (wordmark)           Dark room
+Toran (wordmark)           Dark room
 
 Plan the
 celebration,
@@ -253,7 +253,7 @@ A quick-start chip fills every field and keeps a city and date already typed. It
 ### 2. Result, desktop (1280px)
 
 ```
-Festiva (wordmark)                               Dark room
+Toran (wordmark)                               Dark room
 
 +------------------------------------------------+
 |  Trinket tray painting workshop                |
@@ -285,7 +285,7 @@ The summary bar is `position: sticky` and is hidden until the invitation has scr
 ### 3. Result, 375px
 
 ```
-Festiva (wordmark)               Dark room
+Toran (wordmark)               Dark room
 
 +---------------------------+
 | Trinket tray painting     |
@@ -329,7 +329,7 @@ Vitest does not query tabs. The updates are in `e2e/plan-flow.spec.ts`.
 
 The same component on the intro and on the result. Paper sheet, radius 12px, one shadow: `0 12px 32px rgb(42 27 61 / 0.08)`. A 1px sheet-edge border and, 8px inside it, a 2px marigold hairline under the name only. On the intro, while a field is still empty, the sheet shows ink-soft placeholders: "Your event name", "Pick a date", "Your city". As the person types, those become the event name, or "<Type> in <City>" when the name is empty, then the date, the guest count, the countdown, and the budget from `formatINR`. A changed value cross-fades over 150ms. The caption "Your invitation fills in as you type." sits under the intro sheet only.
 
-On the result the contents are, in order: event name (or "<Type> in <City>" when the name is empty), date, city, guest count, language word ("English" or "हिन्दी"), countdown, budget total. The countdown uses the existing local-date helper. The name is an `h2`. The page `h1` is the hero on the intro. "Festiva" is the wordmark, not a heading, on the intro and on the result.
+On the result the contents are, in order: event name (or "<Type> in <City>" when the name is empty), date, city, guest count, language word ("English" or "हिन्दी"), countdown, budget total. The countdown uses the existing local-date helper. The name is an `h2`. The page `h1` is the hero on the intro. "Toran" is the wordmark, not a heading, on the intro and on the result.
 
 ### Budget
 
@@ -384,7 +384,7 @@ No hover lift, no arrow, no shimmer, no animated chart.
 - No arrows on buttons. The label says what happens: "Create my plan", "Back", "Next", "Edit details", "Save this plan", "Copy text", "Share on WhatsApp", "Add to calendar", "Print plan", "Try again".
 - No identical card grids. The budget panel is the only large panel. Vendors are a stack. Ideas are four treatments.
 - No gradient washes, no full-bleed marigold, no pattern image.
-- The page `h1` is the hero, "Plan the celebration, not the spreadsheet." "Festiva" is the wordmark, not an `h1`.
+- The page `h1` is the hero, "Plan the celebration, not the spreadsheet." "Toran" is the wordmark, not an `h1`.
 - Radius scale, used by purpose: 0 for tables, chart rows, and the thread; 4px for inputs and buttons; 12px for the form sheet, the invitation, and the budget panel. No pill radius.
 - One shadow, shared by the form sheet and the invitation. The dark theme drops it.
 - Form fields sit on paper white in the light theme, and on night paper `#241533` in the dark theme. They are never placed on the pale fill `#F3E6FF`.

@@ -39,11 +39,17 @@ export function EventColumn({
             />
             {form}
           </div>
-          <div className="order-1 grid gap-3 md:order-2">
-            <Invitation empty {...values} />
-            <p className="text-[17px] text-muted-foreground">
-              Your invitation fills in as you type.
-            </p>
+          <div className="order-1 md:order-2">
+            <Invitation
+              showCaption
+              name={values.name}
+              eventType={values.type}
+              city={values.city}
+              date={values.date}
+              guests={values.guests ?? undefined}
+              budget={values.budget ?? undefined}
+              language={values.language}
+            />
           </div>
         </div>
       )}

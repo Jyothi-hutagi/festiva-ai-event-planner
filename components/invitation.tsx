@@ -1,79 +1,113 @@
-import {
-  invitationBudget,
-  invitationCity,
-  invitationCountdown,
-  invitationDate,
-  invitationGuests,
-  invitationLanguage,
-  invitationName,
-  type InvitationLine,
-  type InvitationValues,
-} from "@/lib/invitation-copy";
+import { daysUntil } from "@/lib/countdown";
+import { formatINR } from "@/lib/budget";
+import "./invitation.module.css";
 
-function FadeValue({
-  text,
-  muted,
-  className,
-}: {
-  text: string;
-  muted?: boolean;
-  className?: string;
-}) {
-  return (
-    <span
-      className={`invite-fade ${muted ? "text-muted-foreground" : ""} ${className ?? ""}`}
-    >
+const TYPE_LABELS: Record<string, string> = {
+  wedding: "Wedding",
+  birthday: "Birthday",
+  community: "Community event",
+  workshop: "Workshop",
+  corporate: "Corporate event",
+  other: "Event",
+};
+
+interface InvitationProps {
+  name?: string;
+  eventType?: string;
+  city?: string;
+  /** YYYY-MM-DD, read as a local calendar date */
+  date?: string;
+  guests?: number;
+  budget?: number;
+  language?: "en" | "hi";
+  /** Show the "fills in as you type" caption (intro only) */
+  showCaption?: boolean;
+}
+
+function parseLocalDate(value?: string): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value ?? "");
+  if (!m) return null;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function Value({ text, placeholder }: { text?: string; placeholder: string }) {
+  return text ? (
+    <span key={text} className="invite-fade">
       {text}
     </span>
+  ) : (
+    <span className="invite-placeholder">{placeholder}</span>
   );
 }
 
-function Detail({ line, empty }: { line: InvitationLine; empty: boolean }) {
-  if (line.placeholder && !empty) {
-    return null;
+export function Invitation(props: InvitationProps) {
+  const { name, eventType, city, date, guests, budget, language, showCaption } =
+    props;
+
+  const typeLabel = eventType ? TYPE_LABELS[eventType] : undefined;
+  const cleanName = name?.trim();
+  const cleanCity = city?.trim();
+  const title =
+    cleanName ||
+    (typeLabel && cleanCity ? `${typeLabel} in ${cleanCity}` : typeLabel) ||
+    undefined;
+
+  const parsed = parseLocalDate(date);
+  const dateText = parsed
+    ? parsed.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : undefined;
+
+  let countdown: string | undefined;
+  if (parsed && date) {
+    const days = daysUntil(date);
+    countdown =
+      days === 0
+        ? "Today is the day"
+        : `${days} ${days === 1 ? "day" : "days"} to go`;
   }
-  return (
-    <FadeValue key={line.text} text={line.text} muted={line.placeholder} />
-  );
-}
 
-export function Invitation({
-  empty,
-  ...values
-}: InvitationValues & { empty: boolean }) {
-  const name = invitationName(values);
-  const date = invitationDate(values.date);
-  const city = invitationCity(values.city);
-  const guests = invitationGuests(values.guests);
-  const countdown = invitationCountdown(values.date);
-  const budget = invitationBudget(values.budget);
-  const language =
-    empty && values.language !== "hi"
-      ? null
-      : invitationLanguage(values.language);
+  const guestText =
+    guests && guests > 0
+      ? `${guests} ${guests === 1 ? "guest" : "guests"}`
+      : undefined;
+  const budgetText = budget && budget > 0 ? formatINR(budget) : undefined;
 
   return (
-    <article className="paper-sheet grid gap-3 p-4 md:p-6">
-      <h2 className="max-w-[18ch] text-[28px] leading-[1.15] font-bold md:text-[40px]">
-        <FadeValue key={name.text} text={name.text} muted={name.placeholder} />
+    <section className="invite-sheet" aria-label="Invitation preview">
+      <h2 className="invite-name">
+        <Value text={title} placeholder="Your event name" />
       </h2>
-      <div aria-hidden="true" className="-mx-2 h-0.5 bg-accent md:-mx-4" />
-      <p className="flex flex-wrap gap-x-3 gap-y-1 text-[17px]">
-        <Detail line={date} empty={empty} />
-        <Detail line={city} empty={empty} />
-        {guests ? <FadeValue key={guests} text={guests} /> : null}
-        {language ? <FadeValue key={language} text={language} /> : null}
+      <hr className="invite-rule" />
+      <p className="invite-line">
+        <Value text={dateText} placeholder="Pick a date" />
       </p>
-      {countdown ? (
-        <p className="text-[32px] leading-[1.1] font-bold">
-          <FadeValue key={countdown} text={countdown} />
+      <p className="invite-line">
+        <Value text={cleanCity} placeholder="Your city" />
+      </p>
+      <p className="invite-line">
+        <Value text={guestText} placeholder="Number of guests" />
+      </p>
+      <div className="invite-figures">
+        <span className="invite-figure">
+          <Value text={countdown} placeholder="Days to go" />
+        </span>
+        <span className="invite-figure">
+          <Value text={budgetText} placeholder="Budget" />
+        </span>
+      </div>
+      {language && (
+        <p className="invite-caption">
+          {language === "hi" ? "हिन्दी" : "English"}
         </p>
-      ) : null}
-      {budget ? (
-        <p className="text-[32px] leading-[1.1] font-bold">
-          <FadeValue key={budget} text={budget} />
-        </p>
-      ) : null}
-    </article>
+      )}
+      {showCaption && (
+        <p className="invite-caption">Your invitation fills in as you type.</p>
+      )}
+    </section>
   );
 }

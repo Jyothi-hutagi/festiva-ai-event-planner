@@ -1,7 +1,7 @@
 import { runModel } from "@/lib/gemini";
 import { sanitizeUrl, urlKey } from "@/lib/sanitize-url";
 
-export type GroundedSource = {
+type GroundedSource = {
   title: string;
   uri: string;
 };

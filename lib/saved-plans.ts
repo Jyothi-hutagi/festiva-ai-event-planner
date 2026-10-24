@@ -9,7 +9,7 @@ import {
 } from "@/lib/schema";
 import type { TickMap } from "@/lib/ticks";
 
-export const SAVED_PLANS_KEY = "festiva-saved-plans";
+export const SAVED_PLANS_KEY = "toran-saved-plans";
 
 const RecommendationsSchema = z.object({
   shopping: z.array(ShopItemSchema).max(10),

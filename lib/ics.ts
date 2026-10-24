@@ -144,7 +144,7 @@ export function buildIcs(input: EventInput, plan: Plan, now = new Date()) {
       }
       blocks.push(
         eventBlock({
-          uid: `${formatDate(event)}-phase-${index}@festiva`,
+          uid: `${formatDate(event)}-phase-${index}@toran`,
           stamp,
           start,
           summary: phase.phase,
@@ -156,7 +156,7 @@ export function buildIcs(input: EventInput, plan: Plan, now = new Date()) {
       input.eventName.trim() || `${input.eventType} in ${input.city}`;
     blocks.push(
       eventBlock({
-        uid: `${formatDate(event)}-event@festiva`,
+        uid: `${formatDate(event)}-event@toran`,
         stamp,
         start: event,
         summary: title,
@@ -167,7 +167,7 @@ export function buildIcs(input: EventInput, plan: Plan, now = new Date()) {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Festiva//Event plan//EN",
+    "PRODID:-//Toran//Event plan//EN",
     "CALSCALE:GREGORIAN",
     ...blocks,
     "END:VCALENDAR",

@@ -7,6 +7,13 @@ import {
   type ShopState,
   type VenueState,
 } from "@/lib/load-recommendations";
+import {
+  failList,
+  retryList,
+  settleShopping,
+  settleVenues,
+  type RecommendationLists,
+} from "@/lib/recommendation-state";
 import type { EventInput, Plan } from "@/lib/schema";
 
 export type RecommendationSnapshot = {
@@ -29,8 +36,10 @@ function errorMessage(error: unknown) {
 }
 
 export function useRecommendations() {
-  const [shopping, setShopping] = useState<ShopState>(emptyShopping);
-  const [venues, setVenues] = useState<VenueState>(emptyVenues);
+  const [lists, setLists] = useState<RecommendationLists>({
+    shopping: emptyShopping,
+    venues: emptyVenues,
+  });
   const [imagePrompt, setImagePrompt] = useState("");
   const shopRequest = useRef(0);
   const venueRequest = useRef(0);
@@ -42,27 +51,24 @@ export function useRecommendations() {
     const controller = new AbortController();
     shopAbort.current = controller;
     const id = ++shopRequest.current;
-    setShopping({ status: "loading", items: [], message: "" });
+    setLists((current) => retryList(current, "shopping"));
     void loadShops(input, plan, controller.signal).then(
       (items) => {
         if (id !== shopRequest.current) {
           return;
         }
-        setShopping(
-          items.length === 0
-            ? { status: "empty", items: [], message: "" }
-            : { status: "ready", items, message: "" },
-        );
+        setLists((current) => ({
+          ...current,
+          shopping: settleShopping(items),
+        }));
       },
       (error: unknown) => {
         if (id !== shopRequest.current || isAbort(error)) {
           return;
         }
-        setShopping({
-          status: "error",
-          items: [],
-          message: errorMessage(error),
-        });
+        setLists((current) =>
+          failList(current, "shopping", errorMessage(error)),
+        );
       },
     );
   }
@@ -72,27 +78,19 @@ export function useRecommendations() {
     const controller = new AbortController();
     venueAbort.current = controller;
     const id = ++venueRequest.current;
-    setVenues({ status: "loading", venues: [], message: "" });
+    setLists((current) => retryList(current, "venues"));
     void loadVenues(input, plan, controller.signal).then(
       (next) => {
         if (id !== venueRequest.current) {
           return;
         }
-        setVenues(
-          next.length === 0
-            ? { status: "empty", venues: [], message: "" }
-            : { status: "ready", venues: next, message: "" },
-        );
+        setLists((current) => ({ ...current, venues: settleVenues(next) }));
       },
       (error: unknown) => {
         if (id !== venueRequest.current || isAbort(error)) {
           return;
         }
-        setVenues({
-          status: "error",
-          venues: [],
-          message: errorMessage(error),
-        });
+        setLists((current) => failList(current, "venues", errorMessage(error)));
       },
     );
   }
@@ -104,7 +102,7 @@ export function useRecommendations() {
   }
 
   function snapshot(): RecommendationSnapshot {
-    return { shopping, venues, imagePrompt };
+    return { shopping: lists.shopping, venues: lists.venues, imagePrompt };
   }
 
   function restore(next: RecommendationSnapshot) {
@@ -112,14 +110,13 @@ export function useRecommendations() {
     venueAbort.current?.abort();
     shopRequest.current += 1;
     venueRequest.current += 1;
-    setShopping(next.shopping);
-    setVenues(next.venues);
+    setLists({ shopping: next.shopping, venues: next.venues });
     setImagePrompt(next.imagePrompt);
   }
 
   return {
-    shopping,
-    venues,
+    shopping: lists.shopping,
+    venues: lists.venues,
     imagePrompt,
     setImagePrompt,
     snapshot,

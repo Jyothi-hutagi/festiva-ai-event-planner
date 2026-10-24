@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { ExternalLink } from "@/components/external-link";
 import { Button } from "@/components/ui/button";
-import { planToText } from "@/lib/share-text";
-import type { EventInput, Plan } from "@/lib/schema";
-import type { TickMap } from "@/lib/ticks";
 
 function copyWithFallback(text: string) {
   const area = document.createElement("textarea");
@@ -24,47 +22,47 @@ function copyWithFallback(text: string) {
   return copied;
 }
 
-export function SharePlan({
-  input,
-  plan,
-  ticks,
-}: {
-  input: EventInput;
-  plan: Plan;
-  ticks: TickMap;
-}) {
+export async function copyPlainText(text: string) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // The clipboard API can reject without a fallback write.
+  }
+  return copyWithFallback(text);
+}
+
+export function CopyTextButton({ text }: { text: string }) {
   const [message, setMessage] = useState("");
-  const text = planToText(input, plan, ticks);
 
   async function copy() {
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
-        setMessage("Copied");
-        return;
-      }
-    } catch {
-      // The clipboard API can reject without a fallback write.
-    }
-    setMessage(copyWithFallback(text) ? "Copied" : "Could not copy the plan.");
+    const copied = await copyPlainText(text);
+    setMessage(copied ? "Copied" : "Could not copy the plan.");
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 print:hidden">
+    <>
       <Button type="button" variant="outline" onClick={() => void copy()}>
         Copy text
       </Button>
-      <a
-        href={`https://wa.me/?text=${encodeURIComponent(text)}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex h-8 items-center rounded-lg border border-border px-2.5 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none print:hidden"
-      >
-        Share on WhatsApp
-      </a>
-      <p aria-live="polite" className="text-sm">
+      <p aria-live="polite" className="sr-only">
         {message}
       </p>
-    </div>
+    </>
+  );
+}
+
+export function WhatsAppShare({ text }: { text: string }) {
+  return (
+    <ExternalLink
+      href={`https://wa.me/?text=${encodeURIComponent(text)}`}
+      nowrap
+      showDomain={false}
+      className="inline-flex min-h-11 items-center rounded-[4px] border border-border bg-background px-4 text-base font-semibold whitespace-nowrap print:hidden"
+    >
+      Share on WhatsApp
+    </ExternalLink>
   );
 }

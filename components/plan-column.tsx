@@ -1,38 +1,26 @@
-import { AddToCalendar } from "@/components/add-to-calendar";
-import { Button } from "@/components/ui/button";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { Invitation } from "@/components/invitation";
+import { InvitationArrival } from "@/components/invitation-arrival";
 import { PlanView } from "@/components/plan-view";
-import { PrintButton } from "@/components/print-button";
-import { RefineChat } from "@/components/refine-chat";
-import { SharePlan } from "@/components/share-plan";
-import { StatusMessage } from "@/components/status-message";
-import { formatINR } from "@/lib/budget";
+import { StickyBar } from "@/components/sticky-bar";
 import type { ShopState, VenueState } from "@/lib/load-recommendations";
 import type { EventInput, Plan } from "@/lib/schema";
 import type { TickMap } from "@/lib/ticks";
 
-const eventLabels: Record<EventInput["eventType"], string> = {
-  wedding: "Wedding",
-  birthday: "Birthday",
-  community: "Community event",
-  workshop: "Workshop",
-  corporate: "Corporate",
-  other: "Other",
-};
-
 export function PlanColumn({
-  status,
-  message,
   plan,
   input,
   ticks,
   budgetChange,
   canUndo,
-  chatKey,
   viewKey,
   shopping,
   venues,
   imagePrompt,
-  onRetry,
+  celebrate,
+  onEdit,
   onToggleTick,
   onRefined,
   onUndo,
@@ -41,19 +29,17 @@ export function PlanColumn({
   onImagePrompt,
   onSave,
 }: {
-  status: "empty" | "loading" | "error" | "ready";
-  message: string;
-  plan: Plan | null;
-  input: EventInput | null;
+  plan: Plan;
+  input: EventInput;
   ticks: TickMap;
   budgetChange: string | null;
   canUndo: boolean;
-  chatKey: number;
   viewKey: number;
   shopping: ShopState;
   venues: VenueState;
   imagePrompt: string;
-  onRetry: () => void;
+  celebrate: boolean;
+  onEdit: () => void;
   onToggleTick: (key: string) => void;
   onRefined: (plan: Plan) => void;
   onUndo: () => void;
@@ -62,58 +48,76 @@ export function PlanColumn({
   onImagePrompt: (prompt: string) => void;
   onSave: () => void;
 }) {
+  const inviteRef = useRef<HTMLDivElement>(null);
+  const [barShown, setBarShown] = useState(false);
+
+  useEffect(() => {
+    const invite = inviteRef.current;
+    if (!invite) return;
+    function update() {
+      const box = invite!.getBoundingClientRect();
+      const docBottom = box.bottom + window.scrollY;
+      const maxScroll = Math.max(
+        0,
+        document.documentElement.scrollHeight - window.innerHeight,
+      );
+      const scrolledAway = box.bottom <= 0;
+      const canScrollAway = docBottom <= maxScroll + 1;
+      setBarShown(scrolledAway || !canScrollAway);
+    }
+    update();
+    const observer = new IntersectionObserver(update);
+    observer.observe(invite);
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
   return (
-    <section className="grid gap-4">
-      {status === "ready" && plan ? (
-        <div className="grid gap-4 print:hidden">
-          <PrintButton />
-          <RefineChat
-            key={chatKey}
-            plan={plan}
-            language={input?.language ?? "en"}
-            canUndo={canUndo}
-            onRefined={onRefined}
-            onUndo={onUndo}
+    <section className="grid gap-6 pb-32">
+      <div ref={inviteRef}>
+        <InvitationArrival play={celebrate}>
+          <Invitation
+            name={input.eventName}
+            eventType={input.eventType}
+            city={input.city}
+            date={input.date}
+            guests={input.guestCount}
+            budget={plan.budget.total}
+            language={input.language}
           />
-        </div>
-      ) : null}
-      <div aria-live="polite" className="grid gap-4">
-        {status === "loading" ? (
-          <StatusMessage status="loading" message="Creating your plan..." />
-        ) : null}
-        {status === "error" ? (
-          <StatusMessage status="error" message={message} onRetry={onRetry} />
-        ) : null}
-        {budgetChange ? <p>{budgetChange}</p> : null}
-        {status === "ready" && plan && input ? (
-          <>
-            <div className="flex flex-wrap items-center gap-2 print:hidden">
-              <Button type="button" variant="outline" onClick={onSave}>
-                Save
-              </Button>
-              <AddToCalendar input={input} plan={plan} />
-              <SharePlan input={input} plan={plan} ticks={ticks} />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {eventLabels[input.eventType]} in {input.city} for{" "}
-              {input.guestCount} guests, budget {formatINR(input.budget)}
-            </p>
-            <PlanView
-              key={viewKey}
-              plan={plan}
-              input={input}
-              ticks={ticks}
-              shopping={shopping}
-              venues={venues}
-              imagePrompt={imagePrompt}
-              onToggleTick={onToggleTick}
-              onRetryShopping={onRetryShopping}
-              onRetryVenues={onRetryVenues}
-              onImagePrompt={onImagePrompt}
-            />
-          </>
-        ) : null}
+        </InvitationArrival>
       </div>
+      {budgetChange ? <p>{budgetChange}</p> : null}
+      <PlanView
+        key={viewKey}
+        plan={plan}
+        input={input}
+        ticks={ticks}
+        shopping={shopping}
+        venues={venues}
+        imagePrompt={imagePrompt}
+        canUndo={canUndo}
+        onToggleTick={onToggleTick}
+        onRefined={onRefined}
+        onUndo={onUndo}
+        onRetryShopping={onRetryShopping}
+        onRetryVenues={onRetryVenues}
+        onImagePrompt={onImagePrompt}
+        onSave={onSave}
+      />
+      <StickyBar
+        shown={barShown}
+        input={input}
+        plan={plan}
+        ticks={ticks}
+        onEdit={onEdit}
+        onSave={onSave}
+      />
     </section>
   );
 }

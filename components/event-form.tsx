@@ -15,7 +15,10 @@ import type { z } from "zod";
 import { EventFormView } from "@/components/event-form-view";
 import type { QuickPreset } from "@/components/quick-start";
 import { firstIncompleteStep } from "@/lib/form-step";
-import { watchedInvitation, type InvitationValues } from "@/lib/invitation-copy";
+import {
+  watchedInvitation,
+  type InvitationValues,
+} from "@/lib/invitation-copy";
 import { EventInputSchema, type EventInput } from "@/lib/schema";
 
 type EventFormInput = z.input<typeof EventInputSchema>;
@@ -51,7 +54,11 @@ export function EventForm({
   initialValues?: EventInput | null;
   children: (form: ReactNode, values: InvitationValues) => ReactNode;
 }) {
-  const minDate = useSyncExternalStore(() => () => {}, localToday, () => "");
+  const minDate = useSyncExternalStore(
+    () => () => {},
+    localToday,
+    () => "",
+  );
   const [step, setStep] = useState<0 | 1 | 2>(0);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const skipFocus = useRef(true);

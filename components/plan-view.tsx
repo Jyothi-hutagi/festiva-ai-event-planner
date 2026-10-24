@@ -1,22 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { DecorPreview } from "@/components/decor-preview";
-import { PlanBody } from "@/components/plan-body";
+import { IdeasPanel } from "@/components/ideas-panel";
+import {
+  BudgetSection,
+  PlanSummary,
+  TimelineSection,
+  VendorsSection,
+} from "@/components/plan-body";
+import { PlanRail } from "@/components/plan-rail";
+import { Button } from "@/components/ui/button";
+import { RefineChat } from "@/components/refine-chat";
 import { ShopDecor } from "@/components/shop-decor";
 import { VenuesList } from "@/components/venues-list";
+import { BRAND_NAME } from "@/lib/brand";
 import type { ShopState, VenueState } from "@/lib/load-recommendations";
 import type { EventInput, Plan } from "@/lib/schema";
 import type { TickMap } from "@/lib/ticks";
 
 const tabs = [
   ["plan", "Plan"],
+  ["budget", "Budget"],
+  ["timeline", "Timeline"],
+  ["vendors", "Vendors"],
+  ["ideas", "Ideas"],
   ["decor", "Decor Preview"],
   ["shop", "Shop Decor"],
   ["venues", "Venues & Stay"],
 ] as const;
 
 type TabKey = (typeof tabs)[number][0];
+
+function Panel({
+  id,
+  hidden,
+  print = true,
+  children,
+}: {
+  id: string;
+  hidden: boolean;
+  print?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      id={`plan-panel-${id}`}
+      role="tabpanel"
+      aria-labelledby={`plan-tab-${id}`}
+      inert={hidden ? true : undefined}
+      data-print-section={print ? "" : undefined}
+      className={
+        hidden
+          ? print
+            ? "hidden"
+            : "hidden print:hidden"
+          : print
+            ? undefined
+            : "print:hidden"
+      }
+    >
+      {children}
+    </div>
+  );
+}
 
 export function PlanView({
   plan,
@@ -29,6 +76,10 @@ export function PlanView({
   onRetryShopping,
   onRetryVenues,
   onImagePrompt,
+  onRefined,
+  onUndo,
+  canUndo,
+  onSave,
 }: {
   plan: Plan;
   input: EventInput;
@@ -40,94 +91,76 @@ export function PlanView({
   onRetryShopping: () => void;
   onRetryVenues: () => void;
   onImagePrompt: (prompt: string) => void;
+  onRefined: (plan: Plan) => void;
+  onUndo: () => void;
+  canUndo: boolean;
+  onSave: () => void;
 }) {
   const [tab, setTab] = useState<TabKey>("plan");
 
-  function moveTab(direction: 1 | -1) {
-    const index = tabs.findIndex(([key]) => key === tab);
-    const next = tabs[(index + direction + tabs.length) % tabs.length][0];
-    setTab(next);
-    document.getElementById(`plan-tab-${next}`)?.focus();
-  }
-
   return (
-    <div className="print-sheet grid gap-4">
-      <div
-        role="tablist"
-        aria-label="Plan sections"
-        className="flex flex-wrap gap-2 print:hidden"
-      >
-        {tabs.map(([key, label]) => {
-          const selected = tab === key;
-          return (
-            <button
-              key={key}
-              id={`plan-tab-${key}`}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              aria-controls={`plan-panel-${key}`}
-              tabIndex={selected ? 0 : -1}
-              className="min-h-11 border-b-[3px] border-transparent bg-transparent px-3 text-base font-medium text-foreground aria-selected:border-primary"
-              onClick={() => setTab(key)}
-              onKeyDown={(event) => {
-                if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-                  event.preventDefault();
-                  moveTab(event.key === "ArrowRight" ? 1 : -1);
-                }
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
-      <div
-        id="plan-panel-plan"
-        role="tabpanel"
-        aria-labelledby="plan-tab-plan"
-        hidden={tab !== "plan"}
-        data-print-section=""
-      >
-        <PlanBody
-          plan={plan}
-          eventDate={input.date}
-          guestCount={input.guestCount}
-          ticks={ticks}
-          onToggleTick={onToggleTick}
-        />
-      </div>
-      <div
-        id="plan-panel-decor"
-        role="tabpanel"
-        aria-labelledby="plan-tab-decor"
-        hidden={tab !== "decor"}
-        className="print:hidden"
-      >
-        <DecorPreview
-          input={input}
-          plan={plan}
-          savedPrompt={imagePrompt}
-          onPrompt={onImagePrompt}
-        />
-      </div>
-      <div
-        id="plan-panel-shop"
-        role="tabpanel"
-        aria-labelledby="plan-tab-shop"
-        hidden={tab !== "shop"}
-        data-print-section=""
-      >
-        <ShopDecor state={shopping} onRetry={onRetryShopping} />
-      </div>
-      <div
-        id="plan-panel-venues"
-        role="tabpanel"
-        aria-labelledby="plan-tab-venues"
-        hidden={tab !== "venues"}
-        data-print-section=""
-      >
-        <VenuesList plan={plan} state={venues} onRetry={onRetryVenues} />
+    <div className="print-sheet grid min-w-0 gap-4 md:grid-cols-[220px_minmax(0,1fr)] md:items-start">
+      <p className="hidden font-heading text-2xl font-semibold print:block md:col-span-2">
+        {BRAND_NAME}
+      </p>
+      <PlanRail tabs={tabs} tab={tab} onTab={(key) => setTab(key as TabKey)} />
+      <div className="grid min-w-0 gap-4">
+        <Panel id="plan" hidden={tab !== "plan"}>
+          <div className="grid gap-4">
+            <PlanSummary plan={plan} />
+            <div className="print:hidden">
+              <RefineChat
+                plan={plan}
+                language={input.language}
+                canUndo={canUndo}
+                onRefined={onRefined}
+                onUndo={onUndo}
+              />
+            </div>
+            <Button type="button" variant="outline" onClick={onSave}>
+              Save this plan
+            </Button>
+          </div>
+        </Panel>
+        <Panel id="budget" hidden={tab !== "budget"}>
+          <BudgetSection plan={plan} guestCount={input.guestCount} />
+        </Panel>
+        <Panel id="timeline" hidden={tab !== "timeline"}>
+          <TimelineSection plan={plan} eventDate={input.date} />
+        </Panel>
+        <Panel id="vendors" hidden={tab !== "vendors"}>
+          <VendorsSection
+            plan={plan}
+            ticks={ticks}
+            onToggleTick={onToggleTick}
+          />
+        </Panel>
+        <Panel id="ideas" hidden={tab !== "ideas"}>
+          <IdeasPanel ideas={plan.ideas} onOpenDecor={() => setTab("decor")} />
+        </Panel>
+        <Panel id="decor" hidden={tab !== "decor"} print={false}>
+          <DecorPreview
+            input={input}
+            plan={plan}
+            savedPrompt={imagePrompt}
+            onPrompt={onImagePrompt}
+          />
+        </Panel>
+        <Panel id="shop" hidden={tab !== "shop"}>
+          <ShopDecor
+            state={shopping}
+            guestCount={input.guestCount}
+            onRetry={onRetryShopping}
+          />
+        </Panel>
+        <Panel id="venues" hidden={tab !== "venues"}>
+          <VenuesList
+            plan={plan}
+            city={input.city}
+            state={venues}
+            onRetry={onRetryVenues}
+          />
+        </Panel>
       </div>
     </div>
   );

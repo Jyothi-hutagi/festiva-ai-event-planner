@@ -1,4 +1,4 @@
-Just built Festiva, an AI event planner, for #PromptWars Virtual by Hack2skill x Google for Developers.
+Just built Toran, an AI event planner, for #PromptWars Virtual by Hack2skill x Google for Developers.
 
 Tell it your event type, guest count, budget and city, and it generates:
 

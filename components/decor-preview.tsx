@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { z } from "zod";
+import { LoadingBlock } from "@/components/loading-block";
 import { Button } from "@/components/ui/button";
+import { decorLoadingMessage } from "@/lib/loading-cycle";
 import { readApiError } from "@/lib/read-api-error";
 import type { EventInput, Plan } from "@/lib/schema";
 
@@ -99,35 +101,45 @@ export function DecorPreview({
           disabled={status === "loading"}
           onClick={() => void generate()}
         >
-          {status === "error" ? "Retry" : "Generate preview"}
+          {status === "error" ? "Try again" : "Generate preview"}
         </Button>
       </div>
-      <div aria-live="polite" className="grid gap-3">
-        {status === "loading" ? <p>Creating a decor preview...</p> : null}
-        {status === "error" ? <p>{message}</p> : null}
-        {status === "idle" ? (
-          <p>Generate a decor preview when you want one.</p>
-        ) : null}
-        {status === "empty" ? <p>No decor preview was returned.</p> : null}
-        {status === "stored" ? (
-          <>
-            {prompt ? <p>{prompt}</p> : null}
-            <p>Preview is not stored. Generate it again.</p>
-          </>
-        ) : null}
-        {status === "ready" && src ? (
-          <>
-            {prompt ? <p>{prompt}</p> : null}
-            {/* eslint-disable-next-line @next/next/no-img-element -- in-memory data URL */}
-            <img
-              src={src}
-              alt="AI concept preview"
-              className="max-w-full rounded-lg border border-border"
-            />
-            <p>AI concept preview</p>
-          </>
-        ) : null}
-      </div>
+      {status === "loading" ? (
+        <LoadingBlock message={decorLoadingMessage} />
+      ) : null}
+      {status === "error" ? (
+        <p
+          aria-live="assertive"
+          aria-atomic="true"
+          className="text-destructive"
+        >
+          {message}
+        </p>
+      ) : null}
+      {status === "idle" ? (
+        <p>No decor preview yet. Generate one when you want it.</p>
+      ) : null}
+      {status === "empty" ? (
+        <p>No decor preview was returned. Try again.</p>
+      ) : null}
+      {status === "stored" ? (
+        <>
+          {prompt ? <p>{prompt}</p> : null}
+          <p>Preview is not stored. Generate it again.</p>
+        </>
+      ) : null}
+      {status === "ready" && src ? (
+        <>
+          {prompt ? <p>{prompt}</p> : null}
+          {/* eslint-disable-next-line @next/next/no-img-element -- in-memory data URL */}
+          <img
+            src={src}
+            alt="AI concept preview"
+            className="max-w-full rounded-lg border border-border"
+          />
+          <p>AI concept preview</p>
+        </>
+      ) : null}
     </section>
   );
 }

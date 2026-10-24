@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { geminiFailureResponse } from "@/lib/gemini-error";
+import { geminiUnavailableResponse } from "@/lib/gemini-key";
 import { EventInputSchema, PlanSchema } from "@/lib/schema";
 import { refinePlan } from "@/lib/gemini";
 import { rateLimit } from "@/lib/rate-limit";
@@ -13,6 +15,10 @@ const RefineBodySchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const unavailable = geminiUnavailableResponse();
+  if (unavailable) {
+    return unavailable;
+  }
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
   if (!rateLimit(ip)) {
@@ -38,10 +44,6 @@ export async function POST(req: Request) {
     );
     return NextResponse.json(plan);
   } catch (err) {
-    console.error("plan refinement failed", err);
-    return NextResponse.json(
-      { error: "Could not generate a plan. Please try again." },
-      { status: 502 },
-    );
+    return geminiFailureResponse(err, "plan refinement failed");
   }
 }

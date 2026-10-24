@@ -165,6 +165,27 @@ describe("recommendation schemas", () => {
     ).toBe(true);
   });
 
+  it("accepts an optional shop quantity up to 40", () => {
+    expect(
+      ShopItemSchema.safeParse({
+        item: "Garland",
+        store: "Market",
+        approxPriceInr: 100,
+        quantity: 40,
+        url: "https://example.com/garland",
+      }).success,
+    ).toBe(true);
+    expect(
+      ShopItemSchema.safeParse({
+        item: "Garland",
+        store: "Market",
+        approxPriceInr: 100,
+        quantity: 41,
+        url: "https://example.com/garland",
+      }).success,
+    ).toBe(false);
+  });
+
   it("rejects a link that is not http or https", () => {
     expect(
       VenueSchema.safeParse({ ...venue, url: "javascript:alert(1)" }).success,

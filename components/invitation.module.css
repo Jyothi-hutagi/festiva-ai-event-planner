@@ -1,0 +1,88 @@
+.invite-sheet {
+  background: var(--paper, #ffffff);
+  color: var(--ink, #2a1b3d);
+  border: 1px solid var(--sheet-edge, #7d6894);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sheet, 0 12px 32px rgb(42 27 61 / 0.08));
+  padding: 16px;
+}
+
+.invite-name {
+  margin: 0;
+  max-width: 18ch;
+  font-family: var(--font-baloo), system-ui, sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.invite-rule {
+  height: 0;
+  margin: 12px -8px 16px;
+  border: 0;
+  border-top: 2px solid #ffb627;
+}
+
+.invite-line {
+  margin: 0 0 8px;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.invite-figures {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.invite-figure {
+  font-family: var(--font-baloo), system-ui, sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.invite-placeholder {
+  color: var(--ink-soft, #5c4d73);
+}
+
+.invite-caption {
+  margin: 12px 0 0;
+  color: var(--ink-soft, #5c4d73);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.invite-fade {
+  animation: invite-fade 150ms ease;
+}
+
+@keyframes invite-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (min-width: 768px) {
+  .invite-sheet {
+    padding: 24px;
+  }
+
+  .invite-name {
+    font-size: 40px;
+  }
+
+  .invite-rule {
+    margin-right: -16px;
+    margin-left: -16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .invite-fade {
+    animation: none;
+  }
+}

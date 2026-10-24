@@ -36,8 +36,19 @@ function post(body: unknown, ip: string) {
 
 describe("POST /api/plan", () => {
   beforeEach(() => {
+    process.env.GEMINI_API_KEY = "test-key";
     generatePlanMock.mockReset();
     generatePlanMock.mockResolvedValue(stubPlan);
+  });
+
+  it("returns 503 when GEMINI_API_KEY is missing", async () => {
+    delete process.env.GEMINI_API_KEY;
+    const res = await POST(post(validInput, "198.51.100.13"));
+    expect(res.status).toBe(503);
+    await expect(res.json()).resolves.toEqual({
+      error: "Server is missing GEMINI_API_KEY. See README.",
+    });
+    expect(generatePlanMock).not.toHaveBeenCalled();
   });
 
   it("returns 400 for invalid input", async () => {

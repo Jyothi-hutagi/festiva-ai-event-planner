@@ -33,6 +33,7 @@ export const ShopItemSchema = z.object({
   item: z.string().trim().min(1).max(120),
   store: z.string().trim().min(1).max(120),
   approxPriceInr: z.number().positive().max(100_000_000),
+  quantity: z.number().int().min(1).max(40).optional(),
   url: httpLink,
 });
 

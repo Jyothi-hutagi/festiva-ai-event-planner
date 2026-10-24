@@ -1,4 +1,4 @@
-# Festiva: GenAI Celebration & Event Planner
+# Toran: GenAI Celebration & Event Planner
 
 ## Stack
 Next.js (App Router) + TypeScript (strict) + Tailwind + shadcn/ui + Zod + Vitest + Playwright.

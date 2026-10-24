@@ -25,7 +25,7 @@ export function ThemeToggle() {
     const next = getTheme() === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
     try {
-      localStorage.setItem("festiva-theme", next);
+      localStorage.setItem("toran-theme", next);
     } catch {
       // Storage can be blocked. The attribute still switches this view.
     }

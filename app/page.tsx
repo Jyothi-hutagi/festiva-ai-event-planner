@@ -5,12 +5,15 @@ import { EventColumn } from "@/components/event-column";
 import { Hero } from "@/components/hero";
 import { PlanColumn } from "@/components/plan-column";
 import { SavedPlans } from "@/components/saved-plans";
+import { PlanLoading } from "@/components/plan-loading";
+import { StatusMessage } from "@/components/status-message";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Toran } from "@/components/toran";
 import {
   useRecommendations,
   type RecommendationSnapshot,
 } from "@/components/use-recommendations";
+import { BRAND_NAME } from "@/lib/brand";
 import { formatINR } from "@/lib/budget";
 import { eventTypeLabel } from "@/lib/invitation-copy";
 import { readApiError } from "@/lib/read-api-error";
@@ -46,9 +49,11 @@ export default function HomePage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [formVersion, setFormVersion] = useState(0);
   const [formSeed, setFormSeed] = useState<EventInput | null>(null);
-  const [chatKey, setChatKey] = useState(0);
   const [viewKey, setViewKey] = useState(0);
   const [savedVersion, setSavedVersion] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+  const [arrival, setArrival] = useState(0);
+  const [fresh, setFresh] = useState(false);
   const rec = useRecommendations();
   const pending = useRef(false);
   const lastInput = useRef<EventInput | null>(null);
@@ -60,6 +65,8 @@ export default function HomePage() {
     pending.current = true;
     lastInput.current = nextInput;
     setInput(nextInput);
+    setShowResult(false);
+    setFresh(false);
     setStatus("loading");
     setMessage("");
     setBoard((current) => ({ ...current, budgetChange: null }));
@@ -85,6 +92,9 @@ export default function HomePage() {
       setBoard({ ...emptyBoard, plan: parsed.data });
       setActiveId(null);
       setStatus("ready");
+      setFresh(true);
+      setArrival((key) => key + 1);
+      setShowResult(true);
       setViewKey((key) => key + 1);
       rec.start(nextInput, parsed.data);
     } catch {
@@ -100,6 +110,7 @@ export default function HomePage() {
       return;
     }
     const previous = rec.snapshot();
+    setFresh(false);
     setViewKey((key) => key + 1);
     setBoard((current) => {
       if (!current.plan) {
@@ -142,10 +153,11 @@ export default function HomePage() {
     setInput(entry.input);
     setFormSeed(entry.input);
     setFormVersion((version) => version + 1);
-    setChatKey((version) => version + 1);
     setViewKey((key) => key + 1);
     setActiveId(entry.id);
     setMessage("");
+    setFresh(false);
+    setShowResult(true);
     setStatus("ready");
     setBoard({
       plan: entry.plan,
@@ -203,15 +215,15 @@ export default function HomePage() {
 
   return (
     <main className="grid gap-8 print:block">
-      <div className="grid gap-8 print:hidden">
-        <Toran />
-        <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 md:px-8">
-          <header className="flex items-start justify-between gap-4">
-            <p className="font-heading text-2xl leading-none font-semibold">
-              Festiva
-            </p>
-            <ThemeToggle />
-          </header>
+      <Toran />
+      <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 md:px-8">
+        <div className="flex items-start justify-between gap-4 print:hidden">
+          <p className="font-heading text-2xl leading-none font-semibold">
+            {BRAND_NAME}
+          </p>
+          <ThemeToggle />
+        </div>
+        <div hidden={showResult} className="grid gap-8 print:hidden">
           <Hero />
           <EventColumn
             busy={status === "loading"}
@@ -219,6 +231,15 @@ export default function HomePage() {
             formSeed={formSeed}
             onCreate={createPlan}
           />
+          {status === "loading" ? <PlanLoading /> : null}
+          {status === "error" ? (
+            <StatusMessage
+              message={message}
+              onRetry={() => {
+                if (lastInput.current) void createPlan(lastInput.current);
+              }}
+            />
+          ) : null}
           <SavedPlans
             savedVersion={savedVersion}
             onOpen={openSaved}
@@ -227,24 +248,22 @@ export default function HomePage() {
             }}
           />
         </div>
-      </div>
-      {status === "empty" ? null : (
-        <div className="mx-auto w-full max-w-6xl px-4 md:px-8">
+        {showResult && board.plan && input ? (
           <PlanColumn
-            status={status}
-            message={message}
+            key={arrival}
             plan={board.plan}
             input={input}
             ticks={board.ticks}
             budgetChange={board.budgetChange}
             canUndo={board.undo !== null}
-            chatKey={chatKey}
             viewKey={viewKey}
             shopping={rec.shopping}
             venues={rec.venues}
             imagePrompt={rec.imagePrompt}
-            onRetry={() => {
-              if (lastInput.current) void createPlan(lastInput.current);
+            celebrate={fresh}
+            onEdit={() => {
+              setShowResult(false);
+              window.scrollTo(0, 0);
             }}
             onToggleTick={(key) =>
               setBoard((current) => ({
@@ -263,8 +282,8 @@ export default function HomePage() {
             onImagePrompt={rec.setImagePrompt}
             onSave={saveCurrent}
           />
-        </div>
-      )}
+        ) : null}
+      </div>
     </main>
   );
 }

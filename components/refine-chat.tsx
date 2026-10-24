@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { readApiError } from "@/lib/read-api-error";
+import { queueRefine, type RefineMessage } from "@/lib/refine-messages";
 import { PlanSchema, type EventInput, type Plan } from "@/lib/schema";
 
 const suggestions = [
@@ -12,7 +13,64 @@ const suggestions = [
   "Add more activities for kids",
 ];
 
-type ChatMessage = { role: "user" | "status" | "error"; text: string };
+type ChatMessage = RefineMessage;
+
+function RefineStatus({
+  messages,
+  busy,
+}: {
+  messages: ChatMessage[];
+  busy: boolean;
+}) {
+  const spoken = messages.filter((message) => message.role !== "error");
+  return (
+    <div aria-live="polite" className="grid gap-1">
+      {spoken.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          Ask for a change to this plan.
+        </p>
+      ) : (
+        <ul className="grid gap-1 text-sm">
+          {spoken.map((message, index) => (
+            <li key={`${message.role}-${index}`}>{message.text}</li>
+          ))}
+        </ul>
+      )}
+      {busy ? <p className="text-sm">Updating your plan...</p> : null}
+    </div>
+  );
+}
+
+function RefineError({
+  messages,
+  busy,
+  onRetry,
+}: {
+  messages: ChatMessage[];
+  busy: boolean;
+  onRetry: () => void;
+}) {
+  const errorText = messages.find((message) => message.role === "error")?.text;
+  if (!errorText) {
+    return null;
+  }
+  return (
+    <div className="grid gap-3">
+      <p aria-live="assertive" aria-atomic="true" className="text-destructive">
+        {errorText}
+      </p>
+      <Button
+        type="button"
+        variant="outline"
+        className="w-fit"
+        disabled={busy}
+        onClick={onRetry}
+      >
+        Try again
+      </Button>
+    </div>
+  );
+}
 
 export function RefineChat({
   plan,
@@ -31,18 +89,17 @@ export function RefineChat({
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const pending = useRef(false);
+  const failedInstruction = useRef("");
 
-  async function send(text: string) {
+  async function send(text: string, retry = false) {
     const nextInstruction = text.trim();
     if (!nextInstruction || nextInstruction.length > 300 || pending.current) {
       return;
     }
     pending.current = true;
+    failedInstruction.current = nextInstruction;
     setBusy(true);
-    setMessages((current) => [
-      ...current,
-      { role: "user", text: nextInstruction },
-    ]);
+    setMessages((current) => queueRefine(current, nextInstruction, retry));
     try {
       const response = await fetch("/api/refine", {
         method: "POST",
@@ -74,8 +131,9 @@ export function RefineChat({
       }
       onRefined(parsed.data);
       setInstruction("");
+      failedInstruction.current = "";
       setMessages((current) => [
-        ...current,
+        ...current.filter((message) => message.role !== "error"),
         { role: "status", text: "Plan updated." },
       ]);
     } catch {
@@ -98,27 +156,12 @@ export function RefineChat({
       }}
     >
       <h2 className="font-medium">Refine this plan</h2>
-      <div aria-live="polite" className="grid gap-1">
-        {messages.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Ask for a change to this plan.
-          </p>
-        ) : (
-          <ul className="grid gap-1 text-sm">
-            {messages.map((message, index) => (
-              <li
-                key={`${message.role}-${index}`}
-                className={
-                  message.role === "error" ? "text-destructive" : undefined
-                }
-              >
-                {message.text}
-              </li>
-            ))}
-          </ul>
-        )}
-        {busy ? <p className="text-sm">Updating your plan...</p> : null}
-      </div>
+      <RefineStatus messages={messages} busy={busy} />
+      <RefineError
+        messages={messages}
+        busy={busy}
+        onRetry={() => void send(failedInstruction.current, true)}
+      />
       <div className="flex flex-wrap gap-2">
         {suggestions.map((suggestion) => (
           <Button
@@ -142,7 +185,7 @@ export function RefineChat({
         value={instruction}
         disabled={busy}
         onChange={(event) => setInstruction(event.target.value)}
-        className="w-full rounded-[4px] border border-input bg-card px-3 py-2 text-base focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        className="w-full min-h-11 rounded-[4px] border border-input bg-card px-3 py-2 text-base"
       />
       <p className="text-sm text-muted-foreground">{instruction.length}/300</p>
       <div className="flex gap-2">
