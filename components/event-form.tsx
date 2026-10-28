@@ -95,6 +95,15 @@ export function EventForm({
         setValue("eventType", preset.eventType);
         setValue("guestCount", preset.guestCount);
         setValue("budget", preset.budget);
+        if (preset.city !== undefined) {
+          setValue("city", preset.city);
+        }
+        if (!getValues("date")) {
+          // Default date to 45 days in the future
+          const future = new Date();
+          future.setDate(future.getDate() + 45);
+          setValue("date", future.toISOString().slice(0, 10));
+        }
         if (preset.eventName !== undefined) {
           setValue("eventName", preset.eventName);
         }
@@ -108,6 +117,7 @@ export function EventForm({
             eventType: preset.eventType,
             guestCount: preset.guestCount,
             budget: preset.budget,
+            city: preset.city ?? values.city,
             eventName: preset.eventName ?? values.eventName,
             decorStyle: preset.decorStyle ?? values.decorStyle,
           }),

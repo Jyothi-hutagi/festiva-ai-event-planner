@@ -11,6 +11,7 @@ export type QuickPreset = {
   budget: number;
   eventName?: string;
   decorStyle?: string;
+  city?: string;
 };
 
 const presets: QuickPreset[] = [
@@ -21,24 +22,28 @@ const presets: QuickPreset[] = [
     budget: 15000,
     eventName: "Trinket tray painting workshop",
     decorStyle: "pastel boho",
+    city: "Bengaluru",
   },
   {
     label: "Birthday party",
     eventType: "birthday",
     guestCount: 30,
     budget: 40000,
+    city: "Mumbai",
   },
   {
     label: "Small wedding",
     eventType: "wedding",
     guestCount: 100,
     budget: 300000,
+    city: "Udaipur",
   },
   {
     label: "Community diwali meetup",
     eventType: "community",
     guestCount: 80,
     budget: 50000,
+    city: "Delhi",
   },
 ];
 

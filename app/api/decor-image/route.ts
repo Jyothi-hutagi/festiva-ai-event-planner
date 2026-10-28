@@ -36,7 +36,7 @@ export async function POST(req: Request) {
   }
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
-  if (!rateLimit(`decor-image:${ip}`, 3)) {
+  if (!rateLimit(`decor-image:${ip}`, 10)) {
     return NextResponse.json(
       { error: "Too many requests. Please wait a minute." },
       { status: 429 },
@@ -54,14 +54,17 @@ export async function POST(req: Request) {
   }
 
   try {
-    const result = DecorImageResponseSchema.parse(
-      await generateDecorImages(parsed.data.input, parsed.data.plan),
-    );
+    const rawResult = await generateDecorImages(parsed.data.input, parsed.data.plan);
+    const result = DecorImageResponseSchema.parse(rawResult);
     if (Buffer.byteLength(JSON.stringify(result)) > MAX_RESPONSE_BYTES) {
       throw new Error("decor image response too large");
     }
     return NextResponse.json(result);
   } catch (err) {
-    return geminiFailureResponse(err, "decor image failed");
+    console.error("DECOR_IMAGE_ERROR_DETAILED:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : String(err) },
+      { status: 500 }
+    );
   }
 }

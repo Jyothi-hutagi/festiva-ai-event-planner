@@ -82,6 +82,7 @@ export function DecorPreview({
       setSrc(next);
       setStatus("ready");
     } catch (error) {
+      console.error("Decor preview error details:", error);
       setMessage(
         error instanceof Error
           ? error.message

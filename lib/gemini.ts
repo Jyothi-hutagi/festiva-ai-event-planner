@@ -228,27 +228,102 @@ export function buildDecorPrompt(input: EventInput, decor: string[]) {
   return lines.join("\n").slice(0, 2000);
 }
 
+const THEMATIC_DECOR_PHOTOS: Record<string, string[]> = {
+  birthday: [
+    "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=800&auto=format&fit=crop&q=80",
+  ],
+  wedding: [
+    "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=800&auto=format&fit=crop&q=80",
+  ],
+  community: [
+    "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&auto=format&fit=crop&q=80",
+  ],
+  workshop: [
+    "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&auto=format&fit=crop&q=80",
+  ],
+  corporate: [
+    "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=800&auto=format&fit=crop&q=80",
+  ],
+  other: [
+    "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&auto=format&fit=crop&q=80",
+  ],
+};
+
+async function fetchCuratedDecorImage(eventType: string) {
+  const list = THEMATIC_DECOR_PHOTOS[eventType] ?? THEMATIC_DECOR_PHOTOS.other;
+  const chosenUrl = list[Math.floor(Math.random() * list.length)];
+  const res = await fetch(chosenUrl);
+  if (!res.ok) throw new Error("Could not fetch fallback decor image");
+  const buffer = await res.arrayBuffer();
+  return {
+    mimeType: "image/jpeg",
+    data: Buffer.from(buffer).toString("base64"),
+  };
+}
+
+async function fetchPollinationsImage(prompt: string, eventType: string) {
+  try {
+    const cleanPrompt = encodeURIComponent(
+      prompt.replace(/[\n\r]+/g, " ").slice(0, 500),
+    );
+    const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?width=768&height=768&nologo=true&seed=${Math.floor(Math.random() * 1000000)}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) {
+      console.warn(`Pollinations returned ${res.status}, falling back to curated decor visual`);
+      return await fetchCuratedDecorImage(eventType);
+    }
+    const arrayBuffer = await res.arrayBuffer();
+    return {
+      mimeType: "image/jpeg",
+      data: Buffer.from(arrayBuffer).toString("base64"),
+    };
+  } catch (err) {
+    console.warn("Pollinations failed, using curated decor visual fallback:", err);
+    return await fetchCuratedDecorImage(eventType);
+  }
+}
+
 export async function generateDecorImages(input: EventInput, plan: Plan) {
   const prompt = buildDecorPrompt(input, plan.ideas.decor);
-  const response = await aiClient().models.generateContent({
-    model: IMAGE_MODEL,
-    contents: prompt,
-    config: {
-      responseModalities: ["IMAGE"],
-      imageConfig: { aspectRatio: "1:1", imageSize: "1K" },
-    },
-  });
   const images: { mimeType: string; data: string }[] = [];
-  for (const candidate of response.candidates ?? []) {
-    for (const part of candidate.content?.parts ?? []) {
-      const data = part.inlineData?.data;
-      const mimeType = part.inlineData?.mimeType;
-      if (!data || !mimeType || data.length > MAX_DECOR_IMAGE_CHARS) {
-        continue;
+
+  try {
+    const response = await aiClient().models.generateContent({
+      model: IMAGE_MODEL,
+      contents: prompt,
+      config: {
+        responseModalities: ["IMAGE"],
+        imageConfig: { aspectRatio: "1:1", imageSize: "1K" },
+      },
+    });
+    for (const candidate of response.candidates ?? []) {
+      for (const part of candidate.content?.parts ?? []) {
+        const data = part.inlineData?.data;
+        const mimeType = part.inlineData?.mimeType;
+        if (!data || !mimeType || data.length > MAX_DECOR_IMAGE_CHARS) {
+          continue;
+        }
+        images.push({ mimeType, data });
       }
-      images.push({ mimeType, data });
     }
+  } catch (err) {
+    console.warn("Gemini image generation unavailable, falling back:", err);
   }
+
+  // Fallback to free image generation or high-quality curated decor photo
+  if (images.length === 0) {
+    const fallbackImage = await fetchPollinationsImage(prompt, input.eventType);
+    images.push(fallbackImage);
+  }
+
   if (images.length === 0) {
     throw new Error("decor image missing");
   }
