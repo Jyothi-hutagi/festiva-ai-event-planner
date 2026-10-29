@@ -2,7 +2,35 @@
 
 An end-to-end GenAI planning assistant tailored specifically for Indian celebrations (weddings, milestone birthdays, Diwali parties, workshops, and community events) with budget allocation, countdown timelines, tickable vendor checklists, decor shopping lists, local venue discovery, and AI concept visual previews.
 
-**Live demo:** <your-vercel-url> · **Demo video:** <link> · **Repository:** [https://github.com/Jyothi-hutagi/festiva-ai-event-planner](https://github.com/Jyothi-hutagi/festiva-ai-event-planner)
+**Live demo:** [https://festiva-ai-event-planner.vercel.app](https://festiva-ai-event-planner.vercel.app) · **Repository:** [https://github.com/Jyothi-hutagi/festiva-ai-event-planner](https://github.com/Jyothi-hutagi/festiva-ai-event-planner)
+
+---
+
+## 📌 Submission Overview
+
+### 1. Chosen Vertical
+* **Event Planning & Management (Cultural & Celebrations)**
+* **Persona:** Individuals, families, and community organizers planning Indian celebrations (weddings, milestone birthdays, Diwali parties, workshops) who face chaotic coordination across spreadsheets, fragmented vendor chats, and unbalanced budgets.
+
+### 2. Approach & Logic
+* **Context-Driven Synthesis:** Rather than generic checklist generation, Festiva takes cultural nuances, guest counts, target cities, and INR budgets into account to produce mathematically validated allocations.
+* **Resilient Multi-Tier AI:** 
+  - Uses Google Gemini 2.5 Flash for structured plan generation with strict runtime Zod validation.
+  - Demand-driven lazy loading for Venues and Shopping to respect free-tier rate limits (15 RPM).
+  - Multi-tier visual generation: Gemini Image model ➔ Pollinations AI free tier ➔ Curated high-resolution thematic visuals so the user experience never breaks.
+* **Actionable Next Steps:** Outputs aren't just text; they are interactive (tickable vendor checklists, live budget charts, itemized shopping links, one-click WhatsApp sharing).
+
+### 3. How the Solution Works
+1. **Intake / Preset:** The user selects a 1-click cultural preset or enters event parameters (type, guest count, city, budget, vibe).
+2. **AI Generation (`/api/plan`):** Gemini creates an end-to-end plan with budget math guaranteed within 2% of the total budget.
+3. **Interactive Workspace:** The user navigates between 8 dedicated tabs (Budget, Timeline, Vendors, Ideas, Decor Preview, Shop Decor, Venues & Stay).
+4. **Conversational Refinement (`/api/refine`):** Live chat allows instant plan updates ("make it cheaper", "pure vegetarian menu") with undo capability.
+5. **Execution & Social Export:** 1-click WhatsApp text generation, Google Calendar milestone sync, and printable PDF run-of-show.
+
+### 4. Assumptions Made
+* **Currency & Geography:** Primary target is India (budgets in INR, cities like Mumbai, Delhi, Bengaluru, Udaipur).
+* **Vendor Pricing Standards:** Catering typically constitutes 35–50% of an Indian celebration budget, while venue fees vary based on per-person or hall-rental models.
+* **Connectivity & API Limits:** Assumes the user may run on a free Google AI Studio key; hence, graceful fallbacks and rate-limiting safeguards are active by default.
 
 ---
 
