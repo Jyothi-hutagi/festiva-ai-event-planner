@@ -98,12 +98,22 @@ export function PlanView({
 }) {
   const [tab, setTab] = useState<TabKey>("plan");
 
+  function handleSelectTab(key: TabKey) {
+    setTab(key);
+    if (key === "shop" && shopping.status === "empty") {
+      onRetryShopping();
+    }
+    if (key === "venues" && venues.status === "empty") {
+      onRetryVenues();
+    }
+  }
+
   return (
     <div className="print-sheet grid min-w-0 gap-4 md:grid-cols-[220px_minmax(0,1fr)] md:items-start">
       <p className="hidden font-heading text-2xl font-semibold print:block md:col-span-2">
         {BRAND_NAME}
       </p>
-      <PlanRail tabs={tabs} tab={tab} onTab={(key) => setTab(key as TabKey)} />
+      <PlanRail tabs={tabs} tab={tab} onTab={(key) => handleSelectTab(key as TabKey)} />
       <div className="grid min-w-0 gap-4">
         <Panel id="plan" hidden={tab !== "plan"}>
           <div className="grid gap-4">

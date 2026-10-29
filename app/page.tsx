@@ -96,7 +96,7 @@ export default function HomePage() {
       setArrival((key) => key + 1);
       setShowResult(true);
       setViewKey((key) => key + 1);
-      rec.start(nextInput, parsed.data);
+      // Removed automatic background calls to rec.start to avoid hitting Gemini free tier quota (15 RPM)
     } catch {
       setStatus("error");
       setMessage("Could not generate a plan. Please try again.");
